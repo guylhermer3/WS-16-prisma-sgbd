@@ -3,7 +3,7 @@ import env from "dotenv";
 
 env.config();
 
-class RotaController {
+class RotasController {
 
   static listarRotas = async (req, res) => {
     try {
@@ -184,4 +184,4 @@ class RotaController {
   }
 }
 
-export default RotaController;
+export default RotasController;

@@ -4,18 +4,15 @@ import env from "dotenv";
 
 env.config();
 
-class UsuarioController {
-  // GET - listar Usuarios por nome com paginação 
+class UsuariosController {
   static listarUsuarios = async (req, res) => {
     try {
       let userExists = null;
 
-      // fazer uma busca no banco de dados por todos os registros de usuarios sem filtro
       if (!req.query.nome && !req.query.email) {
         userExists = await prisma.usuarios.findMany();
       }
 
-      // fazer uma busca no banco de dados com filtro por nome
       if (!req.query.email && req.query.nome) {
         userExists = await prisma.usuarios.findMany({
           where: {
@@ -29,7 +26,6 @@ class UsuarioController {
         });
       }
 
-      // fazer uma busca no banco de dados com filtro por email
       if (req.query.email && !req.query.nome) {
         userExists = await prisma.usuarios.findMany({
           where: {
@@ -42,7 +38,7 @@ class UsuarioController {
           },
         });
       }
-      // fazer uma busca no banco de dados com filtro por email e nome
+
       if (req.query.email && req.query.nome) {
         userExists = await prisma.usuarios.findMany({
           where: {
@@ -63,7 +59,6 @@ class UsuarioController {
     }
   }
 
-  // GET por ID - listar Usuario por ID 
   static listarUsuarioPorId = async (req, res) => {
     try {
       const userExists = await prisma.usuarios.findFirst({
@@ -82,7 +77,6 @@ class UsuarioController {
     }
   }
 
-  // POST - cadastrar Usuario
   static cadastrarUsuario = async (req, res) => {
     try {
 
@@ -90,7 +84,6 @@ class UsuarioController {
 
       const erros = [];
 
-      // validar os dados
       if (!nome) {
         erros.push({ error: true, code: 400, message: "Nome é obrigatório" })
       }
@@ -108,7 +101,6 @@ class UsuarioController {
         return res.status(400).json(erros)
       }
 
-      // verificar se o email já está cadastrado
       const userExists = await prisma.usuarios.findFirst({
         where: {
           email: {
@@ -117,15 +109,12 @@ class UsuarioController {
         },
       });
 
-      // se o email já estiver cadastrado, retornar erro
       if (userExists) {
         return res.status(400).json([{ error: true, code: 400, message: "Email já cadastrado" }])
       }
 
-      // criptografar a senha
       const senhaCrypt = bcrypt.hashSync(senha, parseInt(process.env.SALT));
 
-      // criar o usuario
       const userCreated = await prisma.usuarios.create({
         data: {
           nome,
@@ -135,7 +124,6 @@ class UsuarioController {
         },
       });
 
-      // retornar o usuario criado sem o campo senha
       delete userCreated.senha;
       return res.status(201).json(userCreated);
 
@@ -145,10 +133,8 @@ class UsuarioController {
     }
   }
 
-  // PATCH - atualizar Usuario
   static PATCHAtualizarUsuario = async (req, res) => {
     try {
-      // testar se o id do usuario foi informado
       if (!req.params.id) {
         return res.status(400).json([{ error: true, code: 400, message: "ID do usuário é obrigatório" }])
       }
@@ -156,13 +142,11 @@ class UsuarioController {
       const id = req.params.id
       const { nome, email, senha, ativo } = req.body;
 
-      // validar os dados
       if (nome || email || senha || ativo && id) {
       } else {
         return res.status(400).json([{ error: true, code: 400, message: "Algum dado deve ser informado para atualizar o usuário" }])
       }
 
-      // buscar email do usuario no banco de dados
       const emailExists = await prisma.usuarios.findFirst({
         where: {
           id: id
@@ -172,10 +156,8 @@ class UsuarioController {
       console.log(email)
       console.log(typeof email)
 
-      // verificar se o email informado é diferente do email do usuario no cadastro
       if (email !== undefined) {
         if (emailExists.email !== email) {
-          // verificar se o email já está cadastrado para outro usuario
           const emailExistsOutherUser = await prisma.usuarios.findFirst({
             where: {
               email: {
@@ -194,12 +176,10 @@ class UsuarioController {
         }
       }
 
-      // criptografar a senha
       if (senha) {
         const senhaCrypt = bcrypt.hashSync(senha, parseInt(process.env.SALT));
       }
 
-      // atualizar os atributos do usuario que foram informados
       const userUpdated = await prisma.usuarios.update({
         where: {
           id: id,
@@ -212,7 +192,6 @@ class UsuarioController {
         },
       });
 
-      // retornar o usuario criado sem o campo senha
       delete userUpdated.senha;
       return res.status(201).json(userUpdated);
 
@@ -222,31 +201,26 @@ class UsuarioController {
     }
   }
 
-  // PATCH - atualizar Usuario
   static excluirUsuario = async (req, res) => {
     try {
       const erros = [];
 
-      // testar se o id do usuario foi informado
       if (!req.params.id) {
         return res.status(400).json([{ error: true, code: 400, message: "ID do usuário é obrigatório" }])
       }
 
       const id = req.params.id
 
-      // buscar id do usuario no banco de dados
       const userExists = await prisma.usuarios.findFirst({
         where: {
           id: id,
         },
       });
 
-      // verificar se o usuario existe
       if (!userExists) {
         return res.status(400).json([{ error: true, code: 400, message: "Usuário não encontrado" }])
       }
 
-      // verificar se há informações nas tabelas de relacionamento: UsuariosRotas e UsuariosGrupos
       const userExistsRotas = await prisma.usuariosRotas.findMany({
         where: {
           usuario_id: id,
@@ -271,14 +245,12 @@ class UsuarioController {
         return res.status(400).json(erros)
       }
 
-      // excluir o usuario
       const userDeleted = await prisma.usuarios.delete({
         where: {
           id: id,
         },
       });
 
-      // retornar o usuario criado
       return res.status(200).json(userDeleted);
 
     } catch (err) {
@@ -288,4 +260,4 @@ class UsuarioController {
   }
 }
 
-export default UsuarioController;
+export default UsuariosController;

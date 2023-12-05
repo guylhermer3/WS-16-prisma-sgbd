@@ -1,13 +1,12 @@
 import express from "express";
 import UsuarioController from "../controllers/UsuarioController.js";
-// import AuthMiddleware from "../middlewares/AuthMiddleware.js";
 const router = express.Router();
 
 router
   .get("/usuarios", UsuarioController.listarUsuarios)
   .get("/usuarios/:id", UsuarioController.listarUsuarioPorId)
   .post("/usuarios", UsuarioController.cadastrarUsuario)
-  .patch("/usuarios/:id", UsuarioController.PATCHAtualizarUsuario)
+  .patch("/usuarios/:id", UsuarioController.tualizarUsuario)
   .delete("/usuarios/:id", UsuarioController.excluirUsuario)
 
 /**
